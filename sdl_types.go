@@ -5,34 +5,34 @@ type GQLType struct {
 	GoType string
 }
 
-type SDLParam struct {
+type SDLProp struct {
 	Name     string
 	JsonName string // Check later
-	Params   []SDLParam
+	Params   []SDLProp
 	Type     GQLType
 	Required bool
 }
 type SDLType struct {
 	Name     string
 	JsonName string
-	Params   []SDLParam
+	Params   []SDLProp
 }
 
 type SDLInput struct {
 	Name     string
 	JsonName string
-	Params   []SDLParam
+	Params   []SDLProp
 }
 
 func CreateMutation() {
 	mutations := SDLType{
 		Name:     "Mutation",
 		JsonName: "mutation",
-		Params: []SDLParam{
-			SDLParam{
+		Params: []SDLProp{
+			SDLProp{
 				Name: "createOrganization",
-				Params: []SDLParam{
-					SDLParam{
+				Params: []SDLProp{
+					SDLProp{
 						Name: "data",
 						Type: GQLType{
 							Name: "OrganizationCreateInput",

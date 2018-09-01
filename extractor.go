@@ -33,18 +33,16 @@ type Mutation {
 }
 `
 
-func parseType(data string) (*SDLType, error) {
-	rName, err := regexp.Compile(`type [A-Z]\w+`)
-	if err != nil {
-		return nil, err
-	}
+var basicTypes = map[string]string{
+	"String":  "string",
+	"Boolean": "bool",
+	"ID":      "string",
+	"Int":     "int",
+	"Float":   "float",
+}
 
-	name := strings.TrimSpace(strings.Replace(rName.FindString(data), "type", "", -1))
-	if name == "" {
-		return nil, errors.New("invalid name on SDLType")
-	}
-
-	rProps, err := regexp.Compile(`[^type]\w+: *\w+!*`)
+func parseSDLProp(data string) (*SDLProp, error) {
+	rProps, err := regexp.Compile(`[^type] \w+:* *[A-Z]*[a-z]*\(*\w*!*\)*:*.*!*`)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +57,29 @@ func parseType(data string) (*SDLType, error) {
 
 		vProp := strings.TrimSpace(parts[1])
 
+		prop := SDLProp{
+			Name: nProp,
+			Type: GQLType{
+				Name:   strings.Replace(vProp, "!", "", -1),
+				GoType: basicTypes[vProp],
+			},
+			Required: strings.Contains(vProp, "!"),
+		}
+
 	}
+}
+
+func parseType(data string) (*SDLType, error) {
+	rName, err := regexp.Compile(`type [A-Z]\w+`)
+	if err != nil {
+		return nil, err
+	}
+
+	name := strings.TrimSpace(strings.Replace(rName.FindString(data), "type", "", -1))
+	if name == "" {
+		return nil, errors.New("invalid name on SDLType")
+	}
+
 }
 
 func getTypesFromText(data string) ([]*SDLType, error) {
