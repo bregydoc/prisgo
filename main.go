@@ -1,16 +1,33 @@
 package main
 
-import "log"
+import (
+	"log"
+	"os/exec"
+	"strings"
+)
 
 func main() {
-	err := InitPrismaProject("/Users/bregy/go-work/src/prisgo-demo")
+
+	commandPath := exec.Command("pwd")
+
+	currentPath, err := commandPath.Output()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	projectPath := string(currentPath)
+	projectPath = strings.Trim(projectPath, " \n")
+
+	log.Println("Workspace: ", projectPath)
+
+	err = InitPrismaProject(projectPath)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	log.Println("Generation step 1 successful")
 
-	err = FixAndMergerSchema("/Users/bregy/go-work/src/prisgo-demo")
+	err = FixAndMergerSchema(projectPath)
 	if err != nil {
 		log.Fatalln(err)
 	}

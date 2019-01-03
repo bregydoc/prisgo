@@ -1,6 +1,9 @@
 package main
 
-import "os"
+import (
+	"log"
+	"os"
+)
 
 const BasePrimaConfig = `endpoint: http://localhost:4466
 datamodel: seed.graphql
@@ -25,16 +28,18 @@ func VerifyAndCreateTheSeedIfNecessary(basePath string) (filePath string, err er
 	fullPath := join(basePath, "seed.graphql")
 	seed, err := os.Open(fullPath)
 	defer seed.Close()
-	if !os.IsExist(err) {
-		seed, err = os.Create(fullPath)
 
-		_, err = seed.WriteString(DefaultSeedContent)
-		if err != nil {
-			return "", err
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("Seed not exists")
+			seed, err = os.Create(fullPath)
+			defer seed.Close()
+
+			_, err = seed.WriteString(DefaultSeedContent)
+			if err != nil {
+				return "", err
+			}
 		}
-
-	} else if err != nil {
-		return "", err
 	}
 
 	return seed.Name(), nil
