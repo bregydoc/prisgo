@@ -30,6 +30,7 @@ func InitPrismaProject(workspace string) error {
 	t1 := time.Now()
 	err = generator.Run()
 	if err != nil {
+		log.Print("Error: ")
 		log.Println(generator.Output())
 		return err
 	}

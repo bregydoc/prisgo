@@ -3,13 +3,17 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/99designs/gqlgen/codegen"
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+
+	"github.com/99designs/gqlgen/codegen"
+	"github.com/pkg/errors"
+	yaml "gopkg.in/yaml.v2"
 )
 
+const schemaFilename = "schema/prisma.graphql"
+
+// ComposeGQLGen ...
 func ComposeGQLGen() {
 	var config *codegen.Config
 	var err error
@@ -33,7 +37,7 @@ func ComposeGQLGen() {
 
 	config = codegen.DefaultConfig()
 
-	config.SchemaFilename = "schema/fixed_prisma.graphql"
+	config.SchemaFilename = codegen.SchemaFilenames{schemaFilename}
 
 	config.Resolver = codegen.PackageConfig{
 		Filename: "resolver.go",
@@ -57,12 +61,12 @@ func ComposeGQLGen() {
 		os.Exit(1)
 	}
 
-	schemaRaw, err := ioutil.ReadFile(config.SchemaFilename)
+	schemaRaw, err := ioutil.ReadFile(config.SchemaFilename[0])
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "unable to open schema: "+err.Error())
 		os.Exit(1)
 	}
-	config.SchemaStr = string(schemaRaw)
+	config.SchemaStr = map[string]string{schemaFilename: string(schemaRaw)}
 
 	if err = config.Check(); err != nil {
 		fmt.Fprintln(os.Stderr, "invalid config format: "+err.Error())

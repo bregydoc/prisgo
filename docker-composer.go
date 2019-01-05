@@ -8,15 +8,13 @@ import (
 const DockerComposePostgresSql = `version: '3'
 services:
   prisma:
-    image: prismagraphql/prisma:1.17
+    image: prismagraphql/prisma:1.23
     restart: always
     ports:
     - "4466:4466"
     environment:
       PRISMA_CONFIG: |
         port: 4466
-        # uncomment the next line and provide the env var PRISMA_MANAGEMENT_API_SECRET=my-secret to activate cluster security
-        # managementApiSecret: my-secret
         databases:
           default:
             connector: postgres
@@ -25,9 +23,8 @@ services:
             user: prisma
             password: prisma
             migrations: true
-            rawAccess: true
   postgres:
-    image: postgres
+    image: postgres:10.5
     restart: always
     environment:
       POSTGRES_USER: prisma
@@ -41,15 +38,13 @@ volumes:
 const DockerComposeSql = `version: '3'
 services:
   prisma:
-    image: prismagraphql/prisma:1.17
+    image: prismagraphql/prisma:1.23
     restart: always
     ports:
     - "4466:4466"
     environment:
       PRISMA_CONFIG: |
         port: 4466
-        # uncomment the next line and provide the env var PRISMA_MANAGEMENT_API_SECRET=my-secret to activate cluster security
-        # managementApiSecret: my-secret
         databases:
           default:
             connector: mysql
@@ -58,7 +53,6 @@ services:
             user: root
             password: prisma
             migrations: true
-            rawAccess: true
   mysql:
     image: mysql:5.7
     restart: always
@@ -68,7 +62,6 @@ services:
       - mysql:/var/lib/mysql
 volumes:
   mysql:
-
 `
 const DockerTypePostgres = "postgres"
 const DockerTypeSql = "sql"

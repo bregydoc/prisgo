@@ -1,40 +1,37 @@
 package main
 
-import (
-	"log"
-	"os/exec"
-	"strings"
-)
-
 func main() {
 
-	commandPath := exec.Command("pwd")
+	// commandPath := exec.Command("pwd")
 
-	currentPath, err := commandPath.Output()
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// currentPath, err := commandPath.Output()
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	projectPath := string(currentPath)
-	projectPath = strings.Trim(projectPath, " \n")
+	// projectPath := string(currentPath)
+	// projectPath = strings.Trim(projectPath, " \n")
 
-	log.Println("Workspace: ", projectPath)
+	// log.Println("Workspace: ", projectPath)
 
-	err = InitPrismaProject(projectPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// err = InitPrismaProject(projectPath)
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
 
-	log.Println("Generation step 1 successful")
+	// log.Println("Generation step 1 successful")
 
-	err = FixAndMergerSchema(projectPath)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// // err = FixAndMergerSchema(projectPath)
+	// // if err != nil {
+	// // 	log.Fatalln(err)
+	// // }
 
-	log.Println("Generation step 2 successful")
+	// log.Println("Generation step 2 successful")
 
-	ComposeGQLGen()
+	// ComposeGQLGen()
 
-	log.Println("Generation step 3 successful")
+	// log.Println("Generation step 3 successful")
+
+	DeleteRedeclaredTypes(primaGenerated, modelsFromGQLGen)
+
 }
