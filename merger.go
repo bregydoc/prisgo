@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -72,15 +73,15 @@ func ExtractTypesFromFile(filename string) ([]string, error) {
 }
 
 // DeleteRedeclaredTypes ...
-func DeleteRedeclaredTypes(prismaFilename, GQLFilename string) {
+func DeleteRedeclaredTypes(prismaFilename, GQLFilename string) error {
 	prismaTypes, err := ExtractTypesFromFile(prismaFilename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	GQLTypes, err := ExtractTypesFromFile(GQLFilename)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Println("from GQL: ", len(GQLTypes))
@@ -127,4 +128,148 @@ func DeleteRedeclaredTypes(prismaFilename, GQLFilename string) {
 	fmt.Println("total equal consts: ", len(constsMatchedTypes))
 	fmt.Println("---------------------------")
 	fmt.Println("total matchs: ", len(typesMatched))
+
+	// create regex to delete determitaed struct:
+
+	prismaFileData, err := ioutil.ReadFile(prismaFilename)
+	if err != nil {
+		return err
+	}
+
+	// gqlgenFileData, err := ioutil.ReadFile(GQLFilename)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	replacementText := string(prismaFileData)
+
+	totalDeleted := 0
+	fmt.Print("\nDeleting structs\n|")
+	for _, typeName := range structMatchedTypes {
+		structSearcher := `type ` + typeName + ` \{([^\r]*?)\}`
+		r := regexp.MustCompile(structSearcher)
+		matchs := r.FindAllString(replacementText, -1)
+		if len(matchs) == 1 {
+			fmt.Print(".")
+			new := r.ReplaceAllString(replacementText, "")
+			replacementText = new
+			totalDeleted++
+		} else {
+			fmt.Print(" ")
+		}
+
+	}
+	fmt.Print("| ")
+	fmt.Println(totalDeleted)
+
+	totalDeleted = 0
+	fmt.Print("\nDeleting generic types\n|")
+	for _, typeName := range generalMatchedTypes {
+		structSearcher := "type " + typeName
+		r := regexp.MustCompile(structSearcher)
+		matchs := r.FindAllString(replacementText, -1)
+		if len(matchs) == 1 {
+			fmt.Print(".")
+			new := r.ReplaceAllString(replacementText, "")
+			replacementText = new
+			totalDeleted++
+		} else {
+			fmt.Print(" ")
+		}
+
+	}
+	fmt.Print("| ")
+	fmt.Println(totalDeleted)
+
+	totalDeleted = 0
+	fmt.Print("\nDeleting consts\n|")
+	for _, c := range constsMatchedTypes {
+		structSearcher := strings.Replace(c, "const ", "", -1)
+		r := regexp.MustCompile(structSearcher)
+		matchs := r.FindAllString(replacementText, -1)
+		if len(matchs) == 1 {
+			fmt.Print(".")
+			new := r.ReplaceAllString(replacementText, "")
+			replacementText = new
+			totalDeleted++
+		} else {
+			structSearcher := c
+			r := regexp.MustCompile(structSearcher)
+			matchs := r.FindAllString(replacementText, -1)
+			if len(matchs) == 1 {
+				fmt.Print(".")
+				new := r.ReplaceAllString(replacementText, "")
+				replacementText = new
+				totalDeleted++
+			} else {
+				fmt.Print(" ")
+			}
+
+		}
+
+	}
+	fmt.Print("| ")
+	fmt.Println(totalDeleted)
+
+	err = ioutil.WriteFile(prismaFilename, []byte(replacementText), 0446)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func MoveAndFixedPrismaGenerated() error {
+	oldLocation := "generated/prisma/prisma.go"
+	newLocation := "prisma.go"
+	err := os.Rename(oldLocation, newLocation)
+	if err != nil {
+		return err
+	}
+	err = os.Remove("generated/prisma")
+	if err != nil {
+		return err
+	}
+	err = os.Remove("generated")
+	if err != nil {
+		return err
+	}
+
+	data, err := ioutil.ReadFile(newLocation)
+	if err != nil {
+		return err
+	}
+
+	prismaText := string(data)
+	chuncks := strings.Split(prismaText, "\n")
+	prismaText = strings.Join(chuncks[1:], "\n")
+
+	projectName := "prisgo_test"
+	prismaText = strings.Replace(prismaText, "package prisma", "package "+projectName, -1)
+
+	err = ioutil.WriteFile(newLocation, []byte(prismaText), 0446)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func FixModelsGen() error {
+	modelsGenFilename := "models_gen.go"
+
+	data, err := ioutil.ReadFile(modelsGenFilename)
+	if err != nil {
+		return err
+	}
+
+	modelsGenText := string(data)
+
+	modelsGenText = strings.Replace(modelsGenText, "Count string `json:\"count\"`", "Count int64 `json:\"count\"`", -1)
+	err = ioutil.WriteFile(modelsGenFilename, []byte(modelsGenText), 0446)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
