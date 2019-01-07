@@ -63,19 +63,47 @@ services:
 volumes:
   mysql:
 `
+
+const DockerComposeMongoDB = `version: '3'
+services:
+  prisma:
+    image: prismagraphql/prisma:1.23
+    restart: always
+    ports:
+    - "4466:4466"
+    environment:
+      PRISMA_CONFIG: |
+        port: 4466
+        databases:
+          default:
+            connector: mongo
+            uri: mongodb://prisma:prisma@mongo
+  mongo:
+    image: mongo:3.6
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: prisma
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo:/var/lib/mongo
+volumes:
+  mongo:
+`
+
 const DockerTypePostgres = "postgres"
 const DockerTypeSql = "sql"
+const DockerMongoType = "mongo"
 
 func CreateDockerCompose(basePath string, dockerType string) (filePath string, err error) {
 	var file *os.File
-
+	file, err = os.Create(join(basePath, "docker-compose.yml"))
+	if err != nil {
+		return "", err
+	}
 	switch dockerType {
-
 	case DockerTypePostgres:
-		file, err = os.Create(join(basePath, "docker-compose.yml"))
-		if err != nil {
-			return "", err
-		}
 		_, err = file.WriteString(DockerComposePostgresSql)
 		if err != nil {
 			return "", err
@@ -87,7 +115,26 @@ func CreateDockerCompose(basePath string, dockerType string) (filePath string, e
 		}
 		break
 	case DockerTypeSql:
-		return "", errors.New("sql generator not implemented")
+		_, err = file.WriteString(DockerComposeSql)
+		if err != nil {
+			return "", err
+		}
+
+		err = file.Close()
+		if err != nil {
+			return "", err
+		}
+		break
+	case DockerMongoType:
+		_, err = file.WriteString(DockerComposeMongoDB)
+		if err != nil {
+			return "", err
+		}
+
+		err = file.Close()
+		if err != nil {
+			return "", err
+		}
 		break
 	default:
 		return "", errors.New("invalid type for code generation")

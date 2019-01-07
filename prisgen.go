@@ -6,9 +6,9 @@ import (
 	"time"
 )
 
-func InitPrismaProject(workspace string) error {
+func InitPrismaProject(workspace string, dbType string) error {
 	log.Println("Creating Docker Composer")
-	_, err := CreateDockerCompose(workspace, DockerTypePostgres)
+	_, err := CreateDockerCompose(workspace, dbType)
 	if err != nil {
 		return err
 	}

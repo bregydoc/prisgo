@@ -20,7 +20,7 @@ func main() {
 
 	log.Println("Workspace: ", projectPath)
 
-	err = InitPrismaProject(projectPath)
+	err = InitPrismaProject(projectPath, DockerMongoType)
 	if err != nil {
 		log.Fatalln(err)
 	}
